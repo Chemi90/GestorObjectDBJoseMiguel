@@ -315,15 +315,22 @@ public class VentanaItemPedido extends Application implements Initializable {
             return;
         }
 
-        Producto productoSeleccionado = (Producto) productoDAO.findByName(nombreProducto);
-        if (productoSeleccionado == null) {
+        List<Producto> productosSeleccionados = productoDAO.findByName(nombreProducto);
+
+        Producto productoSeleccionado = null;
+        if (productosSeleccionados.isEmpty()) {
+            // El producto no se encontró en la base de datos, maneja este caso
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("Error de Producto");
             alert.setHeaderText("Producto No Encontrado");
             alert.setContentText("El producto seleccionado no existe. Por favor, selecciona otro producto.");
             alert.showAndWait();
-            return;
+        } else {
+            // Si encontraste productos, selecciona el primero (o el que desees) de la lista
+            productoSeleccionado = productosSeleccionados.get(0);
+            // Continúa con el código para crear el ItemPedido con el producto seleccionado
         }
+
 
         ItemPedido nuevoItem = new ItemPedido();
         nuevoItem.setProducto(productoSeleccionado);
