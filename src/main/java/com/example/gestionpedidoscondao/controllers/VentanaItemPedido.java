@@ -347,9 +347,10 @@ public class VentanaItemPedido extends Application implements Initializable {
         nuevoItem.setProducto(productoSeleccionado);
         nuevoItem.setCantidad(cantidad);
         nuevoItem.setPedido(pedidoActual);
-        pedidoDAO.actualizarPrecioTotalPedido(pedidoActual.getId());
+
         itemPedidoDAO.save(nuevoItem);
         recargarYRefrescarTablaItems();
+        pedidoDAO.actualizarPrecioTotalPedido(pedidoActual.getId());
     }
 
     public void actualizarPrecioPedido() {
