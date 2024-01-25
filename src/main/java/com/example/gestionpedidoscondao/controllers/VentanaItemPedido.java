@@ -60,9 +60,19 @@ public class VentanaItemPedido extends Application implements Initializable {
     @javafx.fxml.FXML
     private Button btnAñadir;
     private ItemPedido itemActual = null;
-    private Pedido pedidoActual = null;
+    private Pedido pedidoActual;
     @javafx.fxml.FXML
     private Button btnBorrarItem;
+
+    public VentanaItemPedido() {
+        // Inicializar pedidoActual aquí
+        if (pedidoDAO == null) {
+            pedidoDAO = new PedidoDAO();
+        }
+
+        String codigoPedido = Session.getPedido().getCodigo();
+        pedidoActual = pedidoDAO.findByCodigo(codigoPedido);
+    }
 
     /**
      * {@inheritDoc}
@@ -265,6 +275,7 @@ public class VentanaItemPedido extends Application implements Initializable {
             if (result.isPresent() && result.get().getButtonData() == ButtonBar.ButtonData.OK_DONE) {
                 // Solo borrar el ítem si el usuario confirma la acción
                 itemPedidoDAO.remove(itemSeleccionado);
+                pedidoDAO.actualizarPrecioTotalPedido(pedidoActual.getId());
                 recargarYRefrescarTablaItems();
                 actualizarPrecioPedido();
             }
@@ -336,18 +347,30 @@ public class VentanaItemPedido extends Application implements Initializable {
         nuevoItem.setProducto(productoSeleccionado);
         nuevoItem.setCantidad(cantidad);
         nuevoItem.setPedido(pedidoActual);
-
+        pedidoDAO.actualizarPrecioTotalPedido(pedidoActual.getId());
         itemPedidoDAO.save(nuevoItem);
-
         recargarYRefrescarTablaItems();
     }
 
-    private void actualizarPrecioPedido() {
-        double precioTotal = 0.0;
-        for (ItemPedido item : tbItemsPedidos.getItems()) {
-            precioTotal += item.getPrecioTotal();
+    public void actualizarPrecioPedido() {
+        double precioTotalPedido = 0.0; // Inicializa el precio total en 0
+
+        // Obtén la lista de ItemPedido asociados al pedido actual
+        List<ItemPedido> itemsPedido = new ArrayList<>(pedidoActual.getItemsPedidos());
+
+        // Recorre la lista de ItemPedido y suma sus precios individuales
+        for (ItemPedido itemPedido : itemsPedido) {
+            double precioItem = itemPedido.getProducto().getPrecio(); // Supongamos que hay un método para obtener el precio del producto
+            int cantidad = itemPedido.getCantidad();
+            double precioTotalItem = precioItem * cantidad;
+            precioTotalPedido += precioTotalItem;
         }
-        // Actualizar la etiqueta de precio en la interfaz
-        lbPrecio.setText(String.format("%.2f", precioTotal));
+
+        // Actualiza el precio total del pedido
+        pedidoActual.setTotal(precioTotalPedido);
+
+        // Puedes guardar los cambios en la base de datos si es necesario
+        pedidoDAO.update(pedidoActual); // Supongamos que hay un método para actualizar el pedido en la base de datos
     }
+
 }

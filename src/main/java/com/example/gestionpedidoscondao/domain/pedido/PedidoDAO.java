@@ -7,10 +7,39 @@ import com.example.gestionpedidoscondao.domain.producto.Producto;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
+import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
 import java.util.List;
 
 public class PedidoDAO implements DAO<Pedido> {
+
+
+    public void actualizarPrecioTotalPedido(Long pedidoId) {
+        EntityManager entityManager = ObjectDBUtil.getEntityManagerFactory().createEntityManager();
+        try {
+            entityManager.getTransaction().begin();
+
+            Pedido pedido = entityManager.find(Pedido.class, pedidoId);
+            Double nuevoTotal = calcularNuevoTotalPedido(pedido);
+            pedido.setTotal(nuevoTotal);
+
+            entityManager.getTransaction().commit();
+        } finally {
+            entityManager.close();
+        }
+    }
+
+    private Double calcularNuevoTotalPedido(Pedido pedido) {
+        // Calcula el nuevo total del pedido en función de los ItemPedido
+        // Puedes iterar sobre los ItemPedido y sumar sus precioTotal aquí
+
+        // Ejemplo de cómo calcular el nuevo total:
+        double nuevoTotal = pedido.getItemsPedidos().stream()
+                .mapToDouble(ItemPedido::getPrecioTotal)
+                .sum();
+
+        return nuevoTotal;
+    }
 
     public List<Pedido> findByUsuarioId(int usuarioId) {
         EntityManager em = ObjectDBUtil.getEntityManagerFactory().createEntityManager();
